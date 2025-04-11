@@ -1,1 +1,1 @@
-web: gunicorn --worker-class eventlet -w 1 app:app
+web: gunicorn --worker-class gevent --worker-connections 1000 -w 1 wsgi:app
