@@ -1,16 +1,18 @@
 from flask import Flask, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
+import os
 import random
 import requests
 import time
-import os
 
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, 
     cors_allowed_origins=os.environ.get('FRONTEND_URL', '*'),
-    async_mode='eventlet'
+    async_mode='eventlet',
+    logger=True,
+    engineio_logger=True
 )
 
 # Store game states
@@ -225,4 +227,9 @@ def on_make_guess(data):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    socketio.run(app, host='0.0.0.0', port=port)
+    socketio.run(app, 
+        host='0.0.0.0', 
+        port=port,
+        debug=True,
+        use_reloader=False
+    )
