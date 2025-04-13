@@ -1,3 +1,6 @@
+from gevent import monkey
+monkey.patch_all()
+
 from flask import Flask, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
@@ -8,14 +11,12 @@ import requests
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-socketio = SocketIO(app, 
+socketio = SocketIO(
+    app,
     cors_allowed_origins="*",
     async_mode='gevent',
     logger=True,
-    engineio_logger=True,
-    ping_timeout=60,
-    ping_interval=25,
-    transports=['websocket']
+    engineio_logger=True
 )
 
 # Store game states
@@ -230,9 +231,9 @@ def on_make_guess(data):
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 5000))
-    socketio.run(app, 
-        host='0.0.0.0', 
+    socketio.run(
+        app,
+        host='0.0.0.0',
         port=port,
-        debug=True,
-        allow_unsafe_werkzeug=True
+        debug=True
     )
