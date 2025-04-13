@@ -7,6 +7,11 @@ from flask_cors import CORS
 import os
 import random
 import requests
+import time  # Add this import
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -18,13 +23,22 @@ socketio = SocketIO(
     logger=True,
     engineio_logger=True
 )
-
-# Store game states
 games = {}
 MAX_GUESSES = 6
 
+# Pre-validated words - add more if needed
+VALID_WORDS = ['apple', 'beach', 'chair', 'dance', 'eagle', 'flask', 'grape', 'house', 
+               'igloo', 'juice', 'knife', 'lemon', 'mango', 'night', 'ocean', 'paper', 
+               'queen', 'river', 'sugar', 'table', 'under', 'voice', 'water', 'xylyl', 
+               'yacht', 'zebra']
+
 def get_random_word():
-    """Fetch a random 5-letter word from the API and verify it exists in dictionary"""
+    """Fetch a random 5-letter word and verify it exists in dictionary"""
+    # First try to get a word from our pre-validated list
+    if VALID_WORDS:
+        return random.choice(VALID_WORDS)
+    
+    # If that fails, try the API
     try:
         response = requests.get('https://random-word-api.herokuapp.com/word?length=5')
         if response.status_code == 200:
@@ -33,20 +47,17 @@ def get_random_word():
                 word = words[0].lower()
                 # Verify the word exists in dictionary
                 if is_valid_word(word):
-                    print(f"Successfully found valid word: {word}")
+                    logger.info(f"Successfully found valid word: {word}")
                     return word
                 else:
-                    print(f"Word {word} not found in dictionary, trying again...")
-                    # If word isn't valid, try again
-                    return get_random_word()
+                    logger.info(f"Word {word} not found in dictionary, trying from backup list")
+                    return random.choice(VALID_WORDS)
     except Exception as e:
-        print(f"Error fetching random word: {e}")
+        logger.error(f"Error fetching random word: {e}")
     
-    # Fallback words in case the API fails
-    fallback_words = ['apple', 'beach', 'chair', 'dance', 'eagle', 'flask', 'grape', 'house']
-    word = random.choice(fallback_words)
-    print(f"Using fallback word: {word}")
-    return word
+    # Use fallback words if API fails
+    logger.info("Using fallback word from pre-validated list")
+    return random.choice(VALID_WORDS)
 
 def is_valid_word(word):
     """Check if a word exists in the dictionary"""
@@ -56,7 +67,7 @@ def is_valid_word(word):
         response = requests.get(f'https://api.dictionaryapi.dev/api/v2/entries/en/{word}')
         return response.status_code == 200
     except Exception as e:
-        print(f"Error checking word validity: {e}")
+        logger.error(f"Error checking word validity: {e}")
         return False
 
 def check_word(guess, target):
