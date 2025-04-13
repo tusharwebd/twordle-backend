@@ -1,18 +1,21 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
 import os
 import random
 import requests
-import time
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
 socketio = SocketIO(app, 
-    cors_allowed_origins=os.environ.get('FRONTEND_URL', '*'),
+    cors_allowed_origins="*",
     async_mode='gevent',
     logger=True,
-    engineio_logger=True
+    engineio_logger=True,
+    ping_timeout=60,
+    ping_interval=25,
+    transports=['websocket']
 )
 
 # Store game states
@@ -230,5 +233,6 @@ if __name__ == '__main__':
     socketio.run(app, 
         host='0.0.0.0', 
         port=port,
-        debug=True
+        debug=True,
+        allow_unsafe_werkzeug=True
     )
