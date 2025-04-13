@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, 
     cors_allowed_origins=os.environ.get('FRONTEND_URL', '*'),
-    async_mode='gevent',  # Make sure this is set to gevent
+    async_mode='gevent',
     logger=True,
     engineio_logger=True
 )
@@ -226,10 +226,9 @@ def on_make_guess(data):
         print(f"Game {game_id} ended. Winner: {winner}")
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.getenv("PORT", 5000))
     socketio.run(app, 
         host='0.0.0.0', 
         port=port,
-        debug=True,
-        use_reloader=False
+        debug=True
     )
