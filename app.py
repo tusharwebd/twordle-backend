@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, 
     cors_allowed_origins=os.environ.get('FRONTEND_URL', '*'),
-    async_mode='gevent',
+    async_mode='gevent',  # Make sure this is set to gevent
     logger=True,
     engineio_logger=True
 )
